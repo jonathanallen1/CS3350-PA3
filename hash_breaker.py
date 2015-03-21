@@ -1,15 +1,43 @@
 import argparse
 import hashlib
 import shelve
+from WordList import WordList
 
 def main(source, bible, forward = False):
+    # Get a list of all possible passwords.
+    legalWords = WordList(bible)
 
     if(forward):
         # Prepare forward search attack and save values into db
-        dict = shelve.open("hashes.dict", writeback = True)
-        legalWords = WordList()
-        md5 = hashlib.md5()
+        forward_search(legalWords)
+        print("Forward search values stored in file hashes.dict.")
+    else:
+        # Do brute force attack and forward search attack if 
+        # db file is present and there is no salt.
 
+        # open the file with the usernames and hashes and read data from it
+        f = open(source, "r");
+
+        pass # TODO: Implement this section in brute_force()
+    # end if
+
+    # Print the total computation time
+    print('Success')
+
+# end main
+
+def forward_search(legalWords):
+    """ Performs a forward search attack for passwords with
+        no salt by predetermining every possible password/
+        hash combination and storing them in a data file.
+    """
+
+    # Open the dictionary file for writing.
+    dict = shelve.open("hashes.dict", writeback = True)
+    # Use md5 encryption
+    md5 = hashlib.md5()
+
+    while(legalWords.has_next()):
         # Get the next possible password string.
         password = legalWords.next()
 
@@ -18,48 +46,15 @@ def main(source, bible, forward = False):
         hash = md5.hexdigest()
 
         # Store the string in a file/database
-        dict[password] = hash;
-
-        dict.close;
-
-        # TODO: A lot more. What is here is just me tinkering around
-        # so I have an idea of how I want to implement this section.
-        # Most of this code will be moved into its own function.
-    else:
-        # Do brute force attack, and do forward search attack if db file is present and no salt
-        pass # TODO: Implement this section in brute_force()
-    # end if
-
-    print('Success')
-
-# end main
+        dict[hash] = password;
+    # end while
+        
+    dict.close;
+# end forward_search
 
 def brute_force():
     pass
 # end brute_force
-
-class WordList():
-    """ Finds all the possible strings that could have been used 
-        as passwords and hands them out when they are needed.
-        
-        JACOB, you can implement this however you want, but for              
-        now, I'm planning on using the next method to check the             <---------------- JACOB, READ THIS
-        next password until you have given me all strings of length          
-        5 or less and all strings in the Bible.
-    """
-
-    @classmethod
-    def next(self):
-        return "string"
-    # end next
-
-    @classmethod
-    def has_next(self):
-        return True
-    # end next
-
-# end WordList
-
 
 if __name__ == "__main__":
     # Set the command-line arguments for the program
