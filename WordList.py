@@ -9,16 +9,19 @@ class WordList():
     """
 
     def __init__(self, bible = "Bible.txt"):
+        self.count = 1
         self.bible = bible
     # end constructor
 
-    @classmethod
     def next(self):
         return "string"
     # end next
 
-    @classmethod
     def has_next(self):
+        if self.count > 0:
+            self.count -= 1
+            return True
+
         return False
     # end next
 # end WordList

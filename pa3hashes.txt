@@ -8,3 +8,5 @@ george:asdf16:fc44f44e09f9098179df5854d0a38484
 harry:asdf17:d2d5d8664b029cd5d7dfcf463c32b934
 isaac:asdf18:5c8de51a3027f0e382dfddc8b1ed925c
 jack:asdf19:816b4a8f6799114500b5f2158ece279c
+testnosalt::b45cffe084dd3d20d928bee85e7b0f21
+testwithsalt:asdf20:96e63465ef0a05d35bb6d3278fc74be8

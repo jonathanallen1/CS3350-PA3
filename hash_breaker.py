@@ -1,13 +1,18 @@
 import argparse
 import hashlib
 import shelve
+import os
+import time
 from WordList import WordList
 
 def main(source, bible, forward = False):
-    # Get a list of all possible passwords.
-    legalWords = WordList(bible)
+    # Mark the starting time of the program
+    start = time.time()
 
-    if(forward):
+    if forward:
+        # Get a list of all possible passwords.
+        legalWords = WordList(bible)
+
         # Prepare forward search attack and save values into db
         forward_search(legalWords)
         print("Forward search values stored in file hashes.dict.")
@@ -16,13 +21,23 @@ def main(source, bible, forward = False):
         # db file is present and there is no salt.
 
         # open the file with the usernames and hashes and read data from it
-        f = open(source, "r");
+        fileObject = open(source, "r");
+        
+        for line in fileObject:
+            legalWords = WordList(bible)
+            separate = line.split(':')
+            user = separate[0]
+            salt = separate[1]
+            hash = separate[2].strip()
 
-        pass # TODO: Implement this section in brute_force()
+            pwrd = brute_force(salt, hash, legalWords)
+            print(user + " " + pwrd)
+        # end for
     # end if
 
     # Print the total computation time
-    print('Success')
+    print('total runtime in hours, minutes and seconds: ' + \
+        time.strftime("%H:%M:%S", time.gmtime(time.time() - start)))
 
 # end main
 
@@ -37,7 +52,7 @@ def forward_search(legalWords):
     # Use md5 encryption
     md5 = hashlib.md5()
 
-    while(legalWords.has_next()):
+    while legalWords.has_next():
         # Get the next possible password string.
         password = legalWords.next()
 
@@ -52,9 +67,27 @@ def forward_search(legalWords):
     dict.close;
 # end forward_search
 
-def brute_force():
-    pass
+def brute_force(salt, hash, legalWords):
+
+    if salt is '' and os.path.isfile("hashes.dict.dat"):
+        dict = shelve.open("hashes.dict")
+        if hash in dict.values():
+            return dict[hash]
+        # end if
+    # end if
+
+    while legalWords.has_next():
+        pwrd = legalWords.next()
+        
+        # Find the Hash of that String
+        if hashlib.md5(str.encode(pwrd + salt)).hexdigest() == hash:
+            return pwrd
+        # end if
+    # end while
+
+    return "-- Unable to find password. --"
 # end brute_force
+
 
 if __name__ == "__main__":
     # Set the command-line arguments for the program
