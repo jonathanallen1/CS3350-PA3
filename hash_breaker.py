@@ -23,23 +23,32 @@ def main(source, bible, forward = False):
 
         # open the file with the usernames and hashes and read data from it
         fileObject = open(source, "r");
-        
+
+        users = []
+        passwords = {}
+        salts = {}
+        hashes = {}
+
         for line in fileObject:
-            legalWords = WordList(bible)
+            # Split each line in the input file into the user, salt, and hash
             separate = line.split(':')
             user = separate[0]
-            salt = separate[1]
-            hash = separate[2].strip()
-
-            pwrd = brute_force(salt, hash, legalWords)
-            print(user + " " + pwrd)
+            users.append(user)
+            salts[user] = separate[1]
+            hashes[user] = separate[2].strip()
         # end for
+
+        # Hack the password for this user
+        legalWords = WordList(bible)
+        passwords = brute_force(users, salts, hashes, legalWords)
+
+        for user in users:
+            print(user + " " + passwords[user])
     # end if
 
     # Print the total computation time
     print('total runtime in hours, minutes and seconds: ' + \
         time.strftime("%H:%M:%S", time.gmtime(time.time() - start)))
-
 # end main
 
 def forward_search(legalWords):
@@ -68,25 +77,36 @@ def forward_search(legalWords):
     dict.close;
 # end forward_search
 
-def brute_force(salt, hash, legalWords):
+def brute_force(users, salts, hashes, legalWords):
+    dict = shelve.open("hashes.dict")
+    wordsFound = 0;
+    passwords = {}
+    for user in users:
+        passwords[user] = "-- Unable to find password. --"
 
-    if salt is '' and os.path.isfile("hashes.dict.dat"):
-        dict = shelve.open("hashes.dict")
-        if hash in dict.values():
-            return dict[hash]
+        if salts[user] is '':
+            if hashes[user] in dict.values():
+                passwords[user] = dict[hashes[user]]
+                wordsFound += 1
+            # end if
         # end if
-    # end if
+    # end for
 
-    while legalWords.has_next():
+    dict.close()
+
+    while legalWords.has_next() and wordsFound < len(users):
         pwrd = legalWords.next()
         
-        # Find the Hash of that String
-        if hashlib.md5(str.encode(pwrd + salt)).hexdigest() == hash:
-            return pwrd
-        # end if
+        for user in users:
+            # Find the Hash of that String
+            if hashlib.md5(str.encode(pwrd + salts[user])).hexdigest() == hashes[user]:
+                passwords[user] = pwrd
+                wordsFound += 1
+            # end if
+        # end for
     # end while
 
-    return "-- Unable to find password. --"
+    return passwords
 # end brute_force
 
 
