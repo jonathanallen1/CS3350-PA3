@@ -3,6 +3,7 @@ import hashlib
 import shelve
 import os
 import time
+import itertools
 from WordList import WordList
 
 def main(source, bible, forward = False):
