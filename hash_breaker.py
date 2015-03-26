@@ -1,9 +1,7 @@
 import argparse
 import hashlib
 import shelve
-import os
 import time
-import itertools
 from WordList import WordList
 
 def main(source, bible, forward = False):
@@ -79,29 +77,29 @@ def forward_search(legalWords):
 
 def brute_force(users, salts, hashes, legalWords):
     dict = shelve.open("hashes.dict")
-    wordsFound = 0;
     passwords = {}
+    unfoundUsers = list(users)
     for user in users:
         passwords[user] = "-- Unable to find password. --"
 
         if salts[user] is '':
             if hashes[user] in dict.values():
                 passwords[user] = dict[hashes[user]]
-                wordsFound += 1
+                unfoundUsers.remove(user)
             # end if
         # end if
     # end for
 
     dict.close()
 
-    while legalWords.has_next() and wordsFound < len(users):
-        pwrd = legalWords.next()
+    while legalWords.has_next() and unfoundUsers:
+        pwrd = legalWords.getNext()
         
-        for user in users:
+        for user in unfoundUsers:
             # Find the Hash of that String
             if hashlib.md5(str.encode(pwrd + salts[user])).hexdigest() == hashes[user]:
                 passwords[user] = pwrd
-                wordsFound += 1
+                unfoundUsers.remove(user)
             # end if
         # end for
     # end while
